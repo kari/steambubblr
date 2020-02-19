@@ -1,0 +1,53 @@
+---
+title: "Using Steam's basic usage statistics to see which games have staying power"
+date: 2020-02-19
+output: html_notebook
+---
+
+# Introduction
+
+Some time ago I saw [a presentation by Eric Seufert on using AppAnnie to do product development decisions and market research](http://www.slideshare.net/EricSeufert/using-free-app-annie-data-to-optimize-your-next-game) (for free). The idea is to take the daily iOS Top Grossing chart positions of games and then do a linear regression and find games that have a positive coefficient over time. It's really rough but gives some indication about games' lifecycles. One downside is that you only get the chart position when ideally you would want to know the daily player count or daily revenue (although you can get estimates of these through [AppAnnie's Market Intelligence](https://www.appannie.com/tours/market-data-intelligence/)).
+
+Fortunately Steam has similar (and better) data available at [Steam & Game Stats page](http://store.steampowered.com/stats/ ). This page shows the current and peak players for top 100 games by current players. Ideally I would want to get the top 100 games by *peak* player count (or, daily active user (DAU) figure). Also, ideally, it would be nice to be able to browse this data over time instead of checking [Internet Archive](https://archive.org/help/wayback_api.php) and setting up a script to scrape the page every day but... (This data is something [SteamCharts](https://steamcharts.com) has but they don't have an API or anything).
+
+```{r setup}
+library(tidyverse)
+library(rvest)
+library(lubridate)
+```
+
+```{r}
+# html_data %>% html_nodes("div#detailStats table") %>% html_table(fill = TRUE, header = TRUE)
+filenames <- list.files("steamstats", "\\.html$", full.names = TRUE)
+filenames <- filenames[str_detect(filenames, "20190912", negate = TRUE)]
+lst <- vector("list", length(filenames))
+names(lst) <- str_extract(filenames, "\\d{8}")
+
+for (i in seq_along(filenames)) {
+  html_data <- read_html(filenames[i])
+  stat_date <- str_extract(filenames[i], "\\d{8}")
+  steam_stats <- tibble(
+    peak = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(2) span") %>% html_text() %>% str_replace_all(",", "") %>% strtoi(),
+    game = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4)") %>% html_text() %>% str_trim(),
+    game_id = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4) a") %>% html_attr("href") %>% str_extract("(?<=/app/)\\d+") %>% strtoi()
+    # date = str_extract(filenames[i], "\\d{8}")
+  )
+  lst[[i]] <- steam_stats
+}
+
+```
+
+So, some data scraping and a lot of data cleaning later I have a dataset from January 2015 to date with (almost) daily snapshots of the Stats page from mid-August 2016 onwards. 
+
+# Data quality and limitations
+
+Just to remind, this is just data from Steam, so this data gives no indication of these games' performance on consoles or on other launchers on PC (like Uplay or Epic Games).
+
+There are some remaining data issues, especially with some annual franchises like Football Manager 201x - the playerbase quickly migrates to the next installation and the old game is removed from the Steam storefront. These installments could be grouped to one game, but where's the limit? Should Assassin's Creed games be considered as one franchise as well? Some other, mainly F2P, franchises re-use the game id, or for example in the case of H1Z1 and ARK: Survival Evolved split into two games at some point.
+
+Note that this analysis does not tell anything about a game's revenue performance - however, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it's pretty easy to identify which games are (or act like) traditional AAA-games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.
+
+# Next steps
+
+This here is really just the first part of the approach taken in Seufert's presentation. The next step would be to group these games and find what elements correlate with the staying power. Fortunately there is metadata available through Steam, both publisher-set genres and user-defined tags. It might be possible to group these further to reduce the dimensionality of the data.
+
