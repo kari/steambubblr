@@ -10,41 +10,82 @@ Some time ago I saw [a presentation by Eric Seufert on using AppAnnie to do prod
 
 Fortunately Steam has similar (and better) data available at [Steam & Game Stats page](http://store.steampowered.com/stats/ ). This page shows the current and peak players for top 100 games by current players. Ideally I would want to get the top 100 games by *peak* player count (or, daily active user (DAU) figure). Also, ideally, it would be nice to be able to browse this data over time instead of checking [Internet Archive](https://archive.org/help/wayback_api.php) and setting up a script to scrape the page every day but... (This data is something [SteamCharts](https://steamcharts.com) has but they don't have an API or anything).
 
-```{r setup}
+```{r setup, include = FALSE}
 library(tidyverse)
 library(rvest)
 library(lubridate)
+library(feather)
+library(magrittr)
 ```
 
-```{r}
-filenames <- list.files("steamstats", "\\.html$", full.names = TRUE)
-filenames <- filenames[str_detect(filenames, "20190912", negate = TRUE)]
-lst <- vector("list", length(filenames))
-names(lst) <- str_extract(filenames, "\\d{8}")
+```{r import, eval=FALSE}
+filenames <- list.files("steamstats", "\\.html$", full.names = TRUE) %>% str_subset("20190912", negate = TRUE) # %>% head(10)
+# 20190912 is broken
 
 read_steamstats <- function(fn) {
   html_data <- read_html(fn)
   df <- tibble(
     peak = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(2) span") %>% html_text() %>% str_replace_all(",", "") %>% strtoi(),
-    game = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4)") %>% html_text() %>% str_trim(),
-    game_id = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4) a") %>% html_attr("href") %>% str_extract("(?<=/app/)\\d+") %>% strtoi(),
-    date = str_extract(fn, "\\d{8}")
+    game = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4)") %>% html_text() %>% str_trim() %>% str_replace_all("(â¢|™|Â®|®)", ""),
+    game_id = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4) a") %>% html_attr("href") %>% str_extract("(?<=/app/)\\d+") %>% str_trim(),
+    date = ymd(str_extract(fn, "\\d{8}"))
   )
 
 }
-steam_stats <- lapply(filenames, read_steamstats)
+steam_stats <- lapply(filenames, read_steamstats) %>% bind_rows()
 
 ```
+```{r eval=FALSE, include=FALSE}
+write_feather(steam_stats, "steam_stats.feather")
+```
 
-So, some data scraping and a lot of data cleaning later I have a dataset from January 2015 to date with (almost) daily snapshots of the Stats page from mid-August 2016 onwards. 
+```{r include=FALSE}
+steam_stats <- read_feather("steam_stats.feather")
+```
+
+So, some data scraping and a lot of data cleaning later I have a dataset from `r format(min(steam_stats$date), format = "%B %Y")` to `r format(max(steam_stats$date), format = "%B %Y")` with (almost) daily snapshots of the Stats page from mid-August 2016 onwards. 
 
 # Data quality and limitations
 
-Just to remind, this is just data from Steam, so this data gives no indication of these games' performance on consoles or on other launchers on PC (like Uplay or Epic Games).
+Just to remind, this is just data from Steam, so this data gives no indication of these games' performance on consoles or on other launchers on PC (like Uplay or Epic Games). We are also only looking at games that managed to get at least once to top 100 list. There are tens of thousands of games on Steam, and we are limited to looking at barely `r length(unique(steam_stats$game_id))` of them.
 
 There are some remaining data issues, especially with some annual franchises like Football Manager 201x - the playerbase quickly migrates to the next installation and the old game is removed from the Steam storefront. These installments could be grouped to one game, but where's the limit? Should Assassin's Creed games be considered as one franchise as well? Some other, mainly F2P, franchises re-use the game id, or for example in the case of H1Z1 and ARK: Survival Evolved split into two games at some point.
 
-Note that this analysis does not tell anything about a game's revenue performance - however, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it's pretty easy to identify which games are (or act like) traditional AAA-games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.
+For some reason, sometimes for two annual franchies, Football Manager and Call of Duty, the game ID is missing. Fortunately, these can be found from the data.
+```{r}
+steam_stats %>% filter(is.na(game_id)) %>% group_by(game) %>% summarise(missing = n()) %>% left_join(steam_stats %>% filter(!is.na(game_id)) %>% group_by(game_id) %>% summarise(game=first(game)), by = "game")
+```
+
+For additional fun, Call of Duty: WWII - Multiplayer has two IDs in the dataset in addition to missing an ID (once). other observations that have the same name, and have multiple IDs are:
+
+```{r}
+steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id))) %>% filter(game_id_count > 1)
+```
+
+We can look at the date ranges of these different game IDs and see that it looks like in most cases the game jumped to a new ID (no overlap) - except for Call of Duty: WWII Multiplayer, where the `476620` only blips for a few days.
+
+```{r}
+steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id))) %>% filter(game_id_count > 1) %>% select(-game_id_count) %>% left_join(steam_stats %>% filter(!is.na(game_id)) %>% group_by(game, game_id) %>% summarise(min_date = min(date), max_date = max(date)), by = "game")
+```
+
+Name changes are more common, usually these are weird punctuation changes (Elite: Dangerous -> Elite Dangerous) or in case of Asian games, addition of English name. Or, in the case of for example H1Z1, evolution of the game. This suggests that charting the lifecycle of a game can get really complicated.
+
+```{r}
+summary <- steam_stats %>% filter(!is.na(game_id)) %>% group_by(game_id) %>% summarise(game_name_count = length(unique(game)), game_names = paste(unique(game), collapse = ", ")) %>% filter(game_name_count > 1) %>% arrange(desc(game_name_count))
+summary
+```
+
+```{r}
+steam_stats %>% group_by(game_id) %>% summarise(min_peak = min(peak), max_peak = max(peak), mean_peak = mean(peak), min_date = min(date), max_date = max(date), n = n(), game_name_count = length(unique(game)), game_names = paste(unique(game), collapse = ", "), ) %>% arrange(desc(max_peak))
+```
+
+We can fix the most glaring issues in the data.
+```{r}
+# fix data issues like in Python
+```
+
+
+Also note that this analysis does not tell anything about a game's revenue performance - however, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it is pretty easy to identify which games are (or act like) traditional AAA-games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.
 
 # Next steps
 
