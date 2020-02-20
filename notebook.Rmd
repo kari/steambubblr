@@ -17,23 +17,22 @@ library(lubridate)
 ```
 
 ```{r}
-# html_data %>% html_nodes("div#detailStats table") %>% html_table(fill = TRUE, header = TRUE)
 filenames <- list.files("steamstats", "\\.html$", full.names = TRUE)
 filenames <- filenames[str_detect(filenames, "20190912", negate = TRUE)]
 lst <- vector("list", length(filenames))
 names(lst) <- str_extract(filenames, "\\d{8}")
 
-for (i in seq_along(filenames)) {
-  html_data <- read_html(filenames[i])
-  stat_date <- str_extract(filenames[i], "\\d{8}")
-  steam_stats <- tibble(
+read_steamstats <- function(fn) {
+  html_data <- read_html(fn)
+  df <- tibble(
     peak = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(2) span") %>% html_text() %>% str_replace_all(",", "") %>% strtoi(),
     game = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4)") %>% html_text() %>% str_trim(),
-    game_id = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4) a") %>% html_attr("href") %>% str_extract("(?<=/app/)\\d+") %>% strtoi()
-    # date = str_extract(filenames[i], "\\d{8}")
+    game_id = html_data %>% html_nodes("div#detailStats table tr.player_count_row") %>% html_nodes("td:nth-of-type(4) a") %>% html_attr("href") %>% str_extract("(?<=/app/)\\d+") %>% strtoi(),
+    date = str_extract(fn, "\\d{8}")
   )
-  lst[[i]] <- steam_stats
+
 }
+steam_stats <- lapply(filenames, read_steamstats)
 
 ```
 
