@@ -53,37 +53,54 @@ There are some remaining data issues, especially with some annual franchises lik
 
 For some reason, sometimes for two annual franchies, Football Manager and Call of Duty, the game ID is missing. Fortunately, these can be found from the data.
 ```{r}
-steam_stats %>% filter(is.na(game_id)) %>% group_by(game) %>% summarise(missing = n()) %>% left_join(steam_stats %>% filter(!is.na(game_id)) %>% group_by(game_id) %>% summarise(game=first(game)), by = "game")
+# entries missing a game_id
+steam_stats %>% filter(is.na(game_id)) %>% group_by(game) %>% summarise(missing = n())
 ```
 
-For additional fun, Call of Duty: WWII - Multiplayer has two IDs in the dataset in addition to missing an ID (once). other observations that have the same name, and have multiple IDs are:
+For additional fun, Call of Duty: WWII - Multiplayer has two IDs in the dataset in addition to missing an ID (once). Other observations that have the same name, and have multiple IDs are:
 
 ```{r}
-steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id))) %>% filter(game_id_count > 1)
+# game names that have multiple game id's.
+steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id)), game_ids = paste(unique(game_id), collapse = ", "), last_game_id = last(game_id, order_by = date)) %>% filter(game_id_count > 1)
 ```
 
-We can look at the date ranges of these different game IDs and see that it looks like in most cases the game jumped to a new ID (no overlap) - except for Call of Duty: WWII Multiplayer, where the `476620` only blips for a few days.
+We can look at the date ranges of these different game IDs and see that it looks like in most cases the game jumped to a new ID (no overlap) - except for Call of Duty: WWII Multiplayer, where the `476620` only blips for a few days. For our analysis, it doesn't really matter which ID is used (although it's likely that only the last one is active on Steam).
 
 ```{r}
-steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id))) %>% filter(game_id_count > 1) %>% select(-game_id_count) %>% left_join(steam_stats %>% filter(!is.na(game_id)) %>% group_by(game, game_id) %>% summarise(min_date = min(date), max_date = max(date)), by = "game")
+# game names with multiple ids and the id's timespans
+steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id))) %>% filter(game_id_count > 1) %>% select(-game_id_count) %>% left_join(steam_stats %>% filter(!is.na(game_id)) %>% group_by(game, game_id) %>% summarise(min_date = min(date), max_date = max(date)), by = "game") %>% arrange(game, min_date)
 ```
 
 Name changes are more common, usually these are weird punctuation changes (Elite: Dangerous -> Elite Dangerous) or in case of Asian games, addition of English name. Or, in the case of for example H1Z1, evolution of the game. This suggests that charting the lifecycle of a game can get really complicated.
 
 ```{r}
-summary <- steam_stats %>% filter(!is.na(game_id)) %>% group_by(game_id) %>% summarise(game_name_count = length(unique(game)), game_names = paste(unique(game), collapse = ", ")) %>% filter(game_name_count > 1) %>% arrange(desc(game_name_count))
-summary
+# game id's with multiple names
+steam_stats %>% filter(!is.na(game_id)) %>% group_by(game_id) %>% summarise(game_name_count = length(unique(game)), game_names = paste(unique(game), collapse = ", ")) %>% filter(game_name_count > 1) %>% arrange(desc(game_name_count))
 ```
 
 ```{r}
+# summary table
 steam_stats %>% group_by(game_id) %>% summarise(min_peak = min(peak), max_peak = max(peak), mean_peak = mean(peak), min_date = min(date), max_date = max(date), n = n(), game_name_count = length(unique(game)), game_names = paste(unique(game), collapse = ", "), ) %>% arrange(desc(max_peak))
 ```
 
 We can fix the most glaring issues in the data.
 ```{r}
 # fix data issues like in Python
+# unify game_ids to the last seen game_id for game
+# FIXME: this probably can be done simpler, fe. with grouping and dplyr::fill
+unify_id_map <- steam_stats %>% filter(!is.na(game_id)) %>% group_by(game) %>% summarise(game_id_count = length(unique(game_id)), last_game_id = last(game_id, order_by = date)) %>% filter(game_id_count > 1) %>% select(-game_id_count)
+steam_stats <- steam_stats %>% left_join(unify_id_map, by="game") %>% mutate(game_id = if_else(is.na(last_game_id), game_id, last_game_id)) %>% select(-last_game_id) # fails if unify_id_map is empty
 ```
 
+```{r}
+# missing game_ids
+steam_stats <- steam_stats %>% group_by(game) %>% mutate(game_id = ifelse(is.na(game_id), first(game_id), game_id)) %>% ungroup()
+```
+
+```{r}
+# multiple game names per id
+steam_stats <- steam_stats %>% group_by(game_id) %>% mutate(game = last(game, order_by = date)) %>% ungroup()
+```
 
 Also note that this analysis does not tell anything about a game's revenue performance - however, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it is pretty easy to identify which games are (or act like) traditional AAA-games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.
 
