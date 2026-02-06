@@ -2,5 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
-steamstats/*
+
+# Input files
+steamstats/
+
+# Notebook output
+steambubblr_files/
 notebook.nb.html
+steambubblr.html
