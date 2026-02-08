@@ -40,6 +40,7 @@ Exploring the data, some data issues pop up. First we explore the uniqueness and
 Football Manager together with Call of Duty some entries missing the Game ID in the raw data. Fortunately, these can be found from elsewhere in the data.
 
 ```{r}
+# FIXME: COD WWII MP matches two game_ids!
 (steam_stats |>
   filter(is.na(game_id)) |>
   group_by(game) |>
@@ -59,6 +60,7 @@ steam_stats <- steam_stats |>
 There's also some non-uniqueness with game names.
 
 ```{r}
+# FIXME: There are empty game names (because we filter out all non-ASCII)
 (steam_stats |>
   group_by(game) |>
   summarise(
@@ -123,6 +125,12 @@ Many games only a quick appearance in the Top 100, either by having a big launch
 
 ## Data exploration
 
+```{r}
+# Data notes:
+- Source SDK Base 2013 Multiplayer is some GTAV mod
+- Spacewar is Steam SDK sample app used by pirated games etc.
+```
+
 Interesting cases of game's growth are for example Grand Theft Auto V. We see a traditional launch spike, but followed with a solid growth thanks to the GTA Online feature. The mid-year and year end spikes are related to Steam's biannual sales when the game has been available for a steep discount. The game was given away free on Epic Games Store in May 2020.
 
 Destiny 2 was released on Steam as a free-to-play title in October 2019. It's normal that the initial interest wanes off for this kind of a AAA title, but the crucial thing for service based game is if it can recover from the "death valley".
@@ -175,6 +183,7 @@ We can try to quickly group these games a bit by grouping the list behavior of t
 
 ```{r}
 # FIXME: Lots of random stuff here, and somehow PUBG is weirdly clustered but the Python one didn't scale the features, probably add last_date_of_data - first_date to balance out nobs
+# note about point of time, new games probably still on upward trajectory before plateauing, could limit window to X days
 
 set.seed(42)
 
