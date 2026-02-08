@@ -21,11 +21,11 @@ A long time ago I saw [a presentation by Eric Seufert on <cite>Using (Free!) App
 
 [^1]: App Annie is now part of SensorTower, and this same analysis could be done with any source that gives you historical Top Grossing positions. App Annie just provided that information for free, although not for long after this presentation was shared.
 
-Similar analysis can also be done on Steam, using the data available at [Steam & Game Stats page](http://store.steampowered.com/stats/). This page shows the current and peak players for top 100 games by current or daily players. The daily players is a more recent addition, back when I did my analysis below this option wasn't available. Instead of peak or current, ideally you would like to have a daily active user (DAU) figure, but either of these should work as a proxy for it. Also, ideally, it would be nice to be able to browse this data over time, but Steam doesn't provide this. This data is collected for example by [SteamCharts](https://steamcharts.com), but they don't have a public API for the historical data. 
+Similar analysis can also be done on Steam, using the data available at [Steam & Game Stats page](http://store.steampowered.com/stats/). This page shows the current and peak players for top 100 games by current or daily players. The daily players is a more recent addition, back when I did my analysis below this option wasn't available. Instead of peak or current, ideally you would like to have a daily active user (DAU) figure, but either of these should work as a proxy for it. Also, ideally, it would be nice to be able to browse this data over time, but Steam doesn't provide this. This data is collected for example by [SteamCharts](https://steamcharts.com), but they don't have a public API for the historical data.
 
 For your own purposes, you would need either have a script collect the data through [Steam Web <abbr>API</abbr>](https://steamcommunity.com/dev) like SteamCharts, and try to use services like[Internet Archive](https://archive.org/help/wayback_api.php) to get historical data and scrape the <abbr>HTML</abbr>.
 
-Below I'll use a data set ranging between `r format(min(steam_stats$date), format = "%B %Y")` and `r format(max(steam_stats$date), format = "%B %Y")`, with (almost) daily data from mid-August 2016 onwards. 
+Below I'll use a data set ranging between `r format(min(steam_stats$date), format = "%B %Y")` and `r format(max(steam_stats$date), format = "%B %Y")`, with (almost) daily data from mid-August 2016 onwards.
 
 ## Data quality and limitations
 
@@ -40,36 +40,36 @@ Exploring the data, some data issues pop up. First we explore the uniqueness and
 Football Manager together with Call of Duty some entries missing the Game ID in the raw data. Fortunately, these can be found from elsewhere in the data.
 
 ```{r}
-(steam_stats |> 
-  filter(is.na(game_id)) |> 
-  group_by(game) |> 
+(steam_stats |>
+  filter(is.na(game_id)) |>
+  group_by(game) |>
   summarise(n = n()) |>
-  arrange(-n) |> 
-  left_join(steam_stats |> 
+  arrange(-n) |>
+  left_join(steam_stats |>
               filter(!is.na(game_id)) |>
               group_by(game_id) |>
               summarise(game=first(game)), by = "game"))
 
-steam_stats <- steam_stats |> 
+steam_stats <- steam_stats |>
   group_by(game) |>
   mutate(game_id = if_else(is.na(game_id), min(game_id, na.rm = TRUE), game_id)) |>
   ungroup()
 ```
 
-There's also some non-uniqueness with game names. 
+There's also some non-uniqueness with game names.
 
 ```{r}
-(steam_stats |> 
-  group_by(game) |> 
+(steam_stats |>
+  group_by(game) |>
   summarise(
     count = length(unique(game_id)),
     ids = paste(unique(game_id), collapse = ", ")) |>
   filter(count > 1)) |>
   arrange(-count)
 
-steam_stats <- steam_stats |> 
-  group_by(game) |> 
-  mutate(game_id = min(game_id)) |> 
+steam_stats <- steam_stats |>
+  group_by(game) |>
+  mutate(game_id = min(game_id)) |>
   ungroup()
 
 ```
@@ -79,13 +79,13 @@ In addition there are also multiple names for the same Game ID. Name changes are
 [^2]: Encoding of Steam's web pages went from classic ISO-8859-1 to more modern UTF-8 during this period so all names were filtered down to ASCII range.
 
 ```{r}
-(steam_stats |> 
-  filter(!is.na(game_id)) |> 
-  group_by(game_id) |> 
+(steam_stats |>
+  filter(!is.na(game_id)) |>
+  group_by(game_id) |>
   summarise(
-    count = length(unique(game)), 
+    count = length(unique(game)),
     names = paste(unique(game), collapse = ", ")
-    ) |> 
+    ) |>
   filter(count > 1) |> arrange(-count))
 
 steam_stats <- steam_stats |>
@@ -98,12 +98,12 @@ With some annual franchises like <cite>Football Manager</cite> - the player base
 
 ```{r}
 fm <- steam_stats |> select(peak_today, game, date) |> filter(str_starts(game, "Football Manager"))
-ggplot(fm, aes(x = date, y = peak_today, color = game)) + 
+ggplot(fm, aes(x = date, y = peak_today, color = game)) +
   geom_line() +
   labs(title = "Daily peak CCU for Football Manager games", x = "Date", y = "Peak number of simultaneous players", color = "Installment") +
   stat_summary(aes(color = "Total"), fun = "sum", geom="line", linetype = 2, show.legend = TRUE)
 
-steam_stats <- steam_stats |> 
+steam_stats <- steam_stats |>
   mutate(game = if_else(str_starts(game, "Football Manager"), "Football Manager", game)) |>
   group_by(game) |>
   mutate(game_id = if_else(game == "Football Manager", min(game_id), game_id)) |>
@@ -111,14 +111,39 @@ steam_stats <- steam_stats |>
   summarise(peak_today = sum(peak_today), current_players = sum(current_players), .groups = "drop") # NOTE: We assume distinct players across games, there can be overlap
 ```
 
+## Modeling engagement and growth
+
+Seufert's idea was to summarise this graph as a simple linear regression: we can use the trend line's slope as a summary of how well the game's player base is doing. Let's check what the Steam activity looks like for Warframe and Rainbow Six Siege[^3]
+
+[^3]: These are poor examples in that they are multiplatform games that even on PC have their own launchers, so very much not Steam exclusive games.
+
+The idea is to do this to all games in the dataset and find the games that go to the up and the right, ie. have a positive trend line.
+
+Many games only a quick appearance in the Top 100, either by having a big launch with little follow-up or due to a free weekend, full game giveaway or an open beta. We can filter these out by only looking at games that have been on the top list for at least 90 (non-consecutive) days. It's also worth to note that this is not a list of top played games played on Steam, this list is sorted by how much we have seen these games' player counts increase over time.
+
+## Data exploration
+
+Interesting cases of game's growth are for example Grand Theft Auto V. We see a traditional launch spike, but followed with a solid growth thanks to the GTA Online feature. The mid-year and year end spikes are related to Steam's biannual sales when the game has been available for a steep discount. The game was given away free on Epic Games Store in May 2020.
+
+Destiny 2 was released on Steam as a free-to-play title in October 2019. It's normal that the initial interest wanes off for this kind of a AAA title, but the crucial thing for service based game is if it can recover from the "death valley".
+
+Annual franchises are often at the bottom of the list, because we see strong initial interest (due to in no small part by massive marketing campaigns) but these games are still designed only to last until the next installment and hope that the population moves (and grows).
+
+If we looked at these stats just few years ago, the top performer would have been PUBG. It was a massive beast during 2018 - 2019, and still is formidable but it looks like its best days are behind it.
+
+The true value of this analysis is to find those "smaller" games that are still growing, year on year. Especially the stories of niche games like Euro Truck Simulator 2 are very interesting. Path of Exile seems to really depend on regular content updates that drive players back. This can be a dangerous content treadmill.
+
+We can also try to find the most "product-like" launches, with huge intial spikes and eventual fall off the charts. This games are often single player experiences with little replayability. Like GTA V, these games usually benefit from new player acquisition spikes during Steam's winter and summer sales.
+
+
 ## Clustering the games
 
 In Seufert's presentation, he wanted to map the "opportunities", or games with an upward trajectory, on a matrix with "Mass appeal / Niche appeal" and "Male / Female" axes. I'll chart the games a little bit differently, based on the elements that correlate with the staying power. Below we'll just cluster based on the linear regression coefficients and top chart data. Steam offers further metadata, for example publisher-set genres and user-defined tags that could also be used as factors for clustering or other grouping.
 
 ```{r}
-games <- steam_stats |> 
-  group_by(game) |> 
-  nest() |> 
+games <- steam_stats |>
+  group_by(game) |>
+  nest() |>
   mutate(
     first_date = map_vec(data, \(x) min(x$date)),
     model = map(data, \(x) lm(peak_today ~ date, data = x)),
@@ -132,7 +157,7 @@ games <- steam_stats |>
   rename(coeff = estimate) |>
   ungroup()
 
-(top_games <- games |> 
+(top_games <- games |>
   filter(nobs > 90) |>
   arrange(-coeff))
 ```
@@ -140,7 +165,7 @@ games <- steam_stats |>
 ```{r}
 ggplot(data = top_games |> filter(coeff > 0), aes(x = r.squared, y = coeff, label = game)) +
   labs(title = "Top games by slope that have more than 90 observations", x = "R^2") +
-  geom_point() + 
+  geom_point() +
   scale_y_log10() +
   geom_text_repel(max.overlaps = 9, size = 3)
 ```
@@ -170,8 +195,7 @@ clustered_games <- games |> filter(nobs > 14 & !is.na(coeff)) |> mutate(cluster 
 
 ggplot(data = clustered_games, aes(x = r.squared, y = logcoeff, label = game, color = as.factor(cluster))) +
   labs(title = "Games that have more than 90 observations", x = "R^2", color = "Cluster") +
-  geom_point() + 
+  geom_point() +
   geom_text_repel(max.overlaps = 9, size = 3)
 
 ```
-
