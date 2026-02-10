@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Input files
+steamstats/
+
+# Notebook output
+steambubblr_files/
+steambubblr.html
