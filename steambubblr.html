@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Kari Silvennoinen">
+<meta name="dcterms.date" content="2026-02-06">
+
+<title>Using Steam’s basic usage statistics to see which games have staying power</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="steambubblr_files/libs/clipboard/clipboard.min.js"></script>
+<script src="steambubblr_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="steambubblr_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="steambubblr_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="steambubblr_files/libs/quarto-html/popper.min.js"></script>
+<script src="steambubblr_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="steambubblr_files/libs/quarto-html/anchor.min.js"></script>
+<link href="steambubblr_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="steambubblr_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="steambubblr_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="steambubblr_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="steambubblr_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Using Steam’s basic usage statistics to see which games have staying power</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Kari Silvennoinen </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 6, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setlocale</span>(<span class="st">"LC_TIME"</span>, <span class="st">"C"</span>) <span class="co"># For English month names</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="st">"lubridate.week.start"</span> <span class="ot">=</span> <span class="dv">1</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"steam_stats.rds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>A long time ago I saw <a href="https://www.slideshare.net/slideshow/using-free-app-annie-data-to-optimize-your-next-game/64352925">a presentation by Eric Seufert on <cite>Using (Free!) App Annie data to optimize your next game</cite></a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. The idea was to do market research by taking the daily iOS Top Grossing chart positions of games and then do a linear regression of them and so filter down to games that have a positive coefficient over time. It’s really rough but does give some indication about games’ life cycles and potential. One downside is that you only get the chart position when ideally you would want to know the daily player count or daily revenue (although you can get estimates of these if you pay for them).</p>
+<p>Similar analysis can also be done on Steam, using the data available at <a href="http://store.steampowered.com/stats/">Steam &amp; Game Stats page</a>. This page shows the current and peak players for top 100 games by current or daily players. The daily players is a more recent addition, back when I did my analysis below this option wasn’t available. Instead of peak or current, ideally you would like to have a daily active user (<abbr>DAU</abbr>) figure, but either of these should work as a proxy for it. Also, ideally, it would be nice to be able to browse this data over time, but Steam doesn’t provide this. This data is collected for example by <a href="https://steamcharts.com">SteamCharts</a>, but they don’t have a public <abbr>API</abbr> for the historical data.</p>
+<p>For your own purposes, you would need either have a script collect the data through <a href="https://steamcommunity.com/dev">Steam Web <abbr>API</abbr></a> like SteamCharts, and try to use services like <a href="https://archive.org/help/wayback_api.php">Internet Archive</a> to get historical data and scrape the <abbr>HTML</abbr>.</p>
+</section>
+<section id="data-quality-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="data-quality-and-limitations">Data quality and limitations</h2>
+<p>In this analysis I’ll use a data set ranging between January 2015 and September 2022, with (almost) daily data from mid-August 2016 onwards (except around May 2018). The data collection method was a bit spotty in the beginning, because I was trying to get historical data through the Internet Archive’s Wayback Machine.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dates <span class="ot">&lt;-</span> <span class="fu">unique</span>(steam_stats<span class="sc">$</span>date)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>expected <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(dates), <span class="fu">max</span>(dates), <span class="at">by=</span><span class="st">"day"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>cal <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> expected,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data_exists =</span> <span class="fu">if_else</span>(expected <span class="sc">%in%</span> dates, <span class="st">"Yes"</span>, <span class="st">"No"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">year =</span> <span class="fu">year</span>(date),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">month =</span> <span class="fu">month</span>(date, <span class="at">label =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">wday =</span> <span class="fu">wday</span>(date, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">isoweek =</span> <span class="fu">isoweek</span>(date)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year, month) <span class="sc">|&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">week =</span> <span class="fu">if_else</span>(</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">isoweek</span>(date) <span class="sc">&gt;=</span> <span class="dv">52</span>,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">&amp;</span> <span class="fu">isoweek</span>(date) <span class="sc">==</span> <span class="dv">1</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">max</span>(<span class="fu">isoweek</span>(date)) <span class="sc">+</span> <span class="dv">1</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">isoweek</span>(date)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">-</span> <span class="fu">min</span>(</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(<span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">&amp;</span> <span class="fu">isoweek</span>(date) <span class="sc">==</span> <span class="dv">1</span>, </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>              <span class="fu">max</span>(<span class="fu">isoweek</span>(date))<span class="sc">+</span><span class="dv">1</span>, </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>              <span class="fu">isoweek</span>(date)))<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cal, <span class="fu">aes</span>(<span class="at">y =</span> week, <span class="at">x =</span> wday, <span class="at">fill =</span> data_exists)) <span class="sc">+</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_equal</span>() <span class="sc">+</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(year <span class="sc">~</span> month) <span class="sc">+</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reverse</span>(<span class="at">labels =</span> <span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> <span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Data availability"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"Data exists"</span>) <span class="sc">+</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="at">position =</span> <span class="st">"bottom"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/gaps%20in%20dates-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Just to remind, this is data from Steam <em>only</em>, so it gives no indication of these games’ performance on consoles or on other launchers on PC (like Epic Games or <abbr>GOG</abbr>). We are also only looking at games that managed to get at least <em>once</em> to Top 100 list. There are tens of thousands of games on Steam, and we are limited to looking at barely 1264 of them.</p>
+<p>Also note that this analysis does not tell anything about a game’s revenue performance - we are looking at player counts, not revenue. However, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it is pretty easy to identify which games are (or act like) traditional <abbr>AAA</abbr> games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.</p>
+</section>
+<section id="data-prep-and-cleanup" class="level2">
+<h2 class="anchored" data-anchor-id="data-prep-and-cleanup">Data prep and cleanup</h2>
+<p>Once we have parsed the data and have the raw data set, let’s check the condition of the data we have. First we explore the uniqueness and existence of both Game IDs and game names and the cardinality between the two.</p>
+<p><cite>Football Manager</cite> together with <cite>Call of Duty</cite> have some entries missing the Game ID in the raw data. Fortunately, these can be found from elsewhere in the data.</p>
+<div class="cell fig-cap-location-top">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" data-cap-location="top"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>n) <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">group_by</span>(game_id) <span class="sc">|&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">summarise</span>(<span class="at">game=</span><span class="fu">first</span>(game)), <span class="at">by =</span> <span class="st">"game"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">sum</span>(n), </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">game_id =</span> <span class="fu">paste</span>(<span class="fu">unique</span>(game_id), <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Game"</span>, <span class="st">"N"</span>, <span class="st">"Game ID"</span>), <span class="at">align =</span> <span class="st">"lcc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Game</th>
+<th style="text-align: center;">N</th>
+<th style="text-align: center;">Game ID</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Call of Duty: Advanced Warfare - Multiplayer</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">209660</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Call of Duty: Black Ops II - Multiplayer</td>
+<td style="text-align: center;">244</td>
+<td style="text-align: center;">202990</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Call of Duty: WWII - Multiplayer</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">476600, 476620</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Football Manager 2012</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">71270</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Football Manager 2013</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: center;">207890</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Football Manager 2014</td>
+<td style="text-align: center;">304</td>
+<td style="text-align: center;">231670</td>
+</tr>
+</tbody>
+</table>
+<p>Games with missing Game IDs</p>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game_id =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(game_id), <span class="fu">min</span>(game_id, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In the above table, you’ll notice <cite>Call of Duty: WWII - Multiplayer</cite> matches two Game IDs. There’s also some more non-uniqueness with game names in the data set.</p>
+<div class="cell fig-cap-location-top">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" data-cap-location="top"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">count =</span> <span class="fu">length</span>(<span class="fu">unique</span>(game_id)),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ids =</span> <span class="fu">paste</span>(<span class="fu">unique</span>(game_id), <span class="at">collapse =</span> <span class="st">", "</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Game"</span>, <span class="st">"Count"</span>, <span class="st">"Game IDs"</span>), <span class="at">align =</span> <span class="st">"lcc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Game</th>
+<th style="text-align: center;">Count</th>
+<th style="text-align: center;">Game IDs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Black Desert</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">836620, 582660</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Call of Duty: Modern Warfare 2 - Multiplayer</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">10190, 10180</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Call of Duty: Modern Warfare 3 - Multiplayer</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">42690, 115300</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Call of Duty: WWII - Multiplayer</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">476600, 476620</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">H1Z1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">295110, 433850</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total War: SHOGUN 2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">34330, 201270</td>
+</tr>
+</tbody>
+</table>
+<p>Games with multiple Game IDs</p>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game_id =</span> <span class="fu">min</span>(game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In addition there are also multiple names for the same Game ID. Name changes are somewhat common, usually these are weird punctuation changes (<cite>Elite: Dangerous</cite> -&gt; <cite>Elite Dangerous</cite>) or in case of Asian games, addition of an English name. Or, in the case of for example <cite>H1Z1</cite>, evolution of the game. There was also some weirdness with addition and removal of trademark symbols, but those were filtered out already in the parsing of the raw data<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. This suggests that following the lifecycle of all games programmatically can get really complicated.</p>
+<div class="cell fig-cap-location-top">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" data-cap-location="top"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game_id) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">count =</span> <span class="fu">length</span>(<span class="fu">unique</span>(game)),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names =</span> <span class="fu">paste</span>(<span class="fu">unique</span>(game), <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(count <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>count) <span class="sc">|&gt;</span> </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">25</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Game ID"</span>, <span class="st">"Count"</span>, <span class="st">"Game names"</span>), <span class="at">align =</span> <span class="st">"lcr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 86%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Game ID</th>
+<th style="text-align: center;">Count</th>
+<th style="text-align: right;">Game names</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1205550</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: right;">New World Confidential Test, New World Preview, New World Closed Beta</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">268850</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: right;">EVGA PrecisionX 16, EVGA PrecisionX OC, EVGA Precision XOC</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">295110</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: right;">H1Z1, H1Z1: Just Survive, Just Survive</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">677620</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: right;">Splitgate: Arena Warfare, Splitgate, Splitgate (Beta)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">10500</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Empire: Total War, Total War: EMPIRE - Definitive Edition</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1056640</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Phantasy Star Online 2, Phantasy Star Online 2 New Genesis</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1097150</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Fall Guys, Fall Guys: Ultimate Knockout</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1203220</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">NARAKA: BLADEPOINT Demo, NARAKA: BLADEPOINT</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1301210</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Knockout City Block Party Trial, Knockout City Trial</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1599340</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Lost Ark Closed Technical Alpha, Lost Ark</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1619990</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">SUPER PEOPLE CBT, SUPER PEOPLE FINAL BETA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">208580</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Star Wars: Knights of the Old Republic II, STAR WARS Knights of the Old Republic II: The Sith Lords</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">221380</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Age of Empires II: HD Edition, Age of Empires II (2013)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">226320</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Marvel Heroes 2015, Marvel Heroes 2016</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">228200</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Company of Heroes (New Steam Version), Company of Heroes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">238960</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Path of Exile, PATH OF EXILE: ROYALE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">24010</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Train Simulator 2015, Train Simulator</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">273350</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Evolve, Evolve Stage 2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">306130</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">The Elder Scrolls Online, The Elder Scrolls Online: Tamriel Unlimited</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">322330</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Don’t Starve Together Beta, Don’t Starve Together</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">359320</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Elite: Dangerous, Elite Dangerous</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">363150</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Romance of the Three Kingdoms 13 / 三國志13, Romance of the Three Kingdoms 13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">368230</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">Kingdom, Kingdom: Classic</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">39210</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">FINAL FANTASY XIV: A Realm Reborn, FINAL FANTASY XIV Online</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">433850</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: right;">H1Z1: King of the Kill, Z1 Battle Royale</td>
+</tr>
+</tbody>
+</table>
+<p>Top 25 games with multiple names</p>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game_id) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game =</span> <span class="fu">last</span>(game)) <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>With some annual franchises like <cite>Football Manager</cite> and 2K’s <abbr>NBA</abbr> - the player base quickly migrates to the next installation a(nd sometimes like with the first franchise, the old game is removed from the Steam storefront). These installments could be grouped to one game for our purposes, but where should we set the limit? Should we do similar treatment for <cite>Call of Duty</cite> or just for annual sports franchises?</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(steam_stats <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">select</span>(peak_today, game, date) <span class="sc">|&gt;</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         <span class="fu">filter</span>(<span class="fu">str_starts</span>(game, <span class="st">"Football Manager"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>         <span class="fu">mutate</span>(<span class="at">game =</span> <span class="fu">str_replace</span>(game, <span class="st">"Football Manager"</span>, <span class="st">"FM"</span>)), </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU for Football Manager games"</span>, <span class="at">x =</span> <span class="st">"Date"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>, <span class="at">color =</span> <span class="st">"Installment"</span>) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/combine%20Football%20Manager%20franchise-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game =</span> <span class="fu">if_else</span>(<span class="fu">str_starts</span>(game, <span class="st">"Football Manager"</span>), <span class="st">"Football Manager"</span>, game)) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game_id =</span> <span class="fu">if_else</span>(game <span class="sc">==</span> <span class="st">"Football Manager"</span>, <span class="fu">min</span>(game_id), game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game, game_id, date) <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: We assume distinct players across games, there can be overlap, we could also take max</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">peak_today =</span> <span class="fu">sum</span>(peak_today), <span class="at">current_players =</span> <span class="fu">sum</span>(current_players), <span class="at">.groups =</span> <span class="st">"drop"</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(steam_stats <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">select</span>(peak_today, game, date) <span class="sc">|&gt;</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="fu">filter</span>(<span class="fu">str_starts</span>(game, <span class="st">"NBA 2K"</span>)), </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU for 2K's NBA games"</span>, <span class="at">x =</span> <span class="st">"Date"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>, <span class="at">color =</span> <span class="st">"Installment"</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/combine%20NBA%20franchise-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game =</span> <span class="fu">if_else</span>(<span class="fu">str_starts</span>(game, <span class="st">"NBA 2K"</span>), <span class="st">"NBA 2K"</span>, game)) <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">game_id =</span> <span class="fu">if_else</span>(game <span class="sc">==</span> <span class="st">"NBA 2K"</span>, <span class="fu">min</span>(game_id), game_id)) <span class="sc">|&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game, game_id, date) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: We assume distinct players across games, there can be overlap, we could also take max</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">peak_today =</span> <span class="fu">sum</span>(peak_today), <span class="at">current_players =</span> <span class="fu">sum</span>(current_players), <span class="at">.groups =</span> <span class="st">"drop"</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now our data is in a good enough shape to continue with the actual modeling.</p>
+</section>
+<section id="modeling-engagement-and-growth" class="level2">
+<h2 class="anchored" data-anchor-id="modeling-engagement-and-growth">Modeling engagement and growth</h2>
+<p>Seufert’s idea was to summarise a game’s activity graph as a simple linear regression: we can use the trend line’s slope as a summary of how well the game’s player base is doing. As an example, let’s check what the Steam activity looks like for <cite>Warframe</cite> and <cite>Rainbow Six Siege</cite><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. The idea is to do this for all games in the dataset and find the games that go to the up and the right, ie. have a positive trend line.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Tom Clancy's Rainbow Six Siege"</span>, <span class="st">"Warframe"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of Siege and Warframe"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> game)) <span class="sc">+</span> </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">position =</span> <span class="st">"bottom"</span>)) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/Siege%20and%20Warframe-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>games <span class="ot">&lt;-</span> steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(game) <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>() <span class="sc">|&gt;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">first_date =</span> <span class="fu">map_vec</span>(data, \(x) <span class="fu">min</span>(x<span class="sc">$</span>date)),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="fu">map</span>(data, \(x) <span class="fu">lm</span>(peak_today <span class="sc">~</span> date, <span class="at">data =</span> x)),</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">glance =</span> <span class="fu">map</span>(model, broom<span class="sc">::</span>glance),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">tidy =</span> <span class="fu">map</span>(model, broom<span class="sc">::</span>tidy)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="fu">c</span>(glance, tidy), <span class="at">names_repair =</span> <span class="st">"unique"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"date"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(game, first_date, r.squared, nobs, estimate) <span class="sc">|&gt;</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">coeff =</span> estimate) <span class="sc">|&gt;</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coeff)) <span class="sc">|&gt;</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell fig-cap-location-top">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" data-cap-location="top"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>games <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(nobs <span class="sc">&gt;</span> <span class="dv">90</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>coeff) <span class="sc">|&gt;</span> </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">25</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Game"</span>, <span class="st">"First date"</span>, <span class="st">"$R^2$"</span>, <span class="st">"Observations"</span>, <span class="st">"Coefficient"</span>), <span class="at">align =</span> <span class="st">"lcc"</span>, <span class="at">digits =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 43%">
+<col style="width: 15%">
+<col style="width: 8%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Game</th>
+<th style="text-align: center;">First date</th>
+<th style="text-align: center;"><span class="math inline">\(R^2\)</span></th>
+<th style="text-align: left;">Observations</th>
+<th style="text-align: center;">Coefficient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Apex Legends</td>
+<td style="text-align: center;">2020-11-06</td>
+<td style="text-align: center;">0.77</td>
+<td style="text-align: left;">685</td>
+<td style="text-align: center;">387.70</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Counter-Strike: Global Offensive</td>
+<td style="text-align: center;">2015-01-01</td>
+<td style="text-align: center;">0.47</td>
+<td style="text-align: left;">2475</td>
+<td style="text-align: center;">170.20</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MONSTER HUNTER RISE</td>
+<td style="text-align: center;">2022-01-13</td>
+<td style="text-align: center;">0.04</td>
+<td style="text-align: left;">211</td>
+<td style="text-align: center;">128.77</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Source SDK Base 2013 Multiplayer</td>
+<td style="text-align: center;">2017-05-25</td>
+<td style="text-align: center;">0.87</td>
+<td style="text-align: left;">1245</td>
+<td style="text-align: center;">120.31</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Stumble Guys</td>
+<td style="text-align: center;">2022-02-25</td>
+<td style="text-align: center;">0.78</td>
+<td style="text-align: left;">202</td>
+<td style="text-align: center;">111.62</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FIFA 22</td>
+<td style="text-align: center;">2021-10-01</td>
+<td style="text-align: center;">0.34</td>
+<td style="text-align: left;">357</td>
+<td style="text-align: center;">77.28</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Total War: WARHAMMER III</td>
+<td style="text-align: center;">2022-02-18</td>
+<td style="text-align: center;">0.03</td>
+<td style="text-align: left;">119</td>
+<td style="text-align: center;">75.08</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Wallpaper Engine</td>
+<td style="text-align: center;">2017-01-06</td>
+<td style="text-align: center;">0.86</td>
+<td style="text-align: left;">2027</td>
+<td style="text-align: center;">42.02</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Z1 Battle Royale</td>
+<td style="text-align: center;">2016-02-22</td>
+<td style="text-align: center;">0.05</td>
+<td style="text-align: left;">531</td>
+<td style="text-align: center;">40.46</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rust</td>
+<td style="text-align: center;">2015-01-01</td>
+<td style="text-align: center;">0.64</td>
+<td style="text-align: left;">2475</td>
+<td style="text-align: center;">37.47</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Grand Theft Auto V</td>
+<td style="text-align: center;">2015-04-14</td>
+<td style="text-align: center;">0.39</td>
+<td style="text-align: left;">2426</td>
+<td style="text-align: center;">36.63</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Tom Clancy’s Rainbow Six Siege</td>
+<td style="text-align: center;">2015-12-01</td>
+<td style="text-align: center;">0.19</td>
+<td style="text-align: left;">2299</td>
+<td style="text-align: center;">24.31</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Raft</td>
+<td style="text-align: center;">2018-06-13</td>
+<td style="text-align: center;">0.29</td>
+<td style="text-align: left;">382</td>
+<td style="text-align: center;">23.79</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">eFootball PES 2020</td>
+<td style="text-align: center;">2019-07-31</td>
+<td style="text-align: center;">0.38</td>
+<td style="text-align: left;">410</td>
+<td style="text-align: center;">22.47</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">World of Warships</td>
+<td style="text-align: center;">2017-11-19</td>
+<td style="text-align: center;">0.10</td>
+<td style="text-align: left;">578</td>
+<td style="text-align: center;">21.57</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Dead by Daylight</td>
+<td style="text-align: center;">2016-06-15</td>
+<td style="text-align: center;">0.63</td>
+<td style="text-align: left;">2187</td>
+<td style="text-align: center;">20.77</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Splitgate</td>
+<td style="text-align: center;">2019-05-25</td>
+<td style="text-align: center;">0.06</td>
+<td style="text-align: left;">99</td>
+<td style="text-align: center;">19.91</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">tModLoader</td>
+<td style="text-align: center;">2020-05-17</td>
+<td style="text-align: center;">0.63</td>
+<td style="text-align: left;">857</td>
+<td style="text-align: center;">19.73</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Phantasy Star Online 2 New Genesis</td>
+<td style="text-align: center;">2020-08-06</td>
+<td style="text-align: center;">0.09</td>
+<td style="text-align: left;">204</td>
+<td style="text-align: center;">19.48</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Tomb Raider</td>
+<td style="text-align: center;">2015-01-01</td>
+<td style="text-align: center;">0.52</td>
+<td style="text-align: left;">95</td>
+<td style="text-align: center;">17.68</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Source SDK Base 2007</td>
+<td style="text-align: center;">2015-03-24</td>
+<td style="text-align: center;">0.07</td>
+<td style="text-align: left;">462</td>
+<td style="text-align: center;">16.49</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Hunt: Showdown</td>
+<td style="text-align: center;">2018-02-23</td>
+<td style="text-align: center;">0.64</td>
+<td style="text-align: left;">1051</td>
+<td style="text-align: center;">15.40</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hearts of Iron IV</td>
+<td style="text-align: center;">2016-06-07</td>
+<td style="text-align: center;">0.84</td>
+<td style="text-align: left;">2193</td>
+<td style="text-align: center;">14.97</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">The Sims 4</td>
+<td style="text-align: center;">2020-09-07</td>
+<td style="text-align: center;">0.32</td>
+<td style="text-align: left;">675</td>
+<td style="text-align: center;">14.88</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Team Fortress 2</td>
+<td style="text-align: center;">2015-01-01</td>
+<td style="text-align: center;">0.32</td>
+<td style="text-align: left;">2475</td>
+<td style="text-align: center;">14.85</td>
+</tr>
+</tbody>
+</table>
+<p>Only games with at least 90 observations</p>
+</div>
+<p>Top 25 games by slope coefficient</p>
+</div>
+<p>Many games only a quick appearance in the Top 100, either by having a big launch with little follow-up or due to a free weekend, full game giveaway or an open beta. We can filter these out by only looking at games that have been on the top list for at least 90 (non-consecutive) days. It’s also worth to note that this is not a list of top played games played on Steam, this list is sorted by how much we have seen these games’ player counts increase over time.</p>
+<p>Above you’ll notice <cite>Source <abbr>SDK</abbr> Base 2013 Multiplayer</cite>, it is used as the game identifier for some <cite><abbr>GTA</abbr> V</cite> mod. Likewise, a game called <cite>Spacewar</cite> might also pop up, it is a game included as a sample app in Steam <abbr>SDK</abbr> and often used as a placeholder by pirated games. You might also wonder about <cite>Wallpaper Engine</cite>, and I’ll let this <a href="https://www.technologyreview.com/2022/07/21/1056315/chinese-gamers-steam-wallpaper-porn/">MIT Technology Review</a> article eplain that one. We’ll filter these out.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>games <span class="ot">&lt;-</span> games <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>game <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Source SDK Base 2013 Multiplayer"</span>, <span class="st">"Spacewar"</span>, <span class="st">"Wallpaper Engine"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="data-exploration" class="level2">
+<h2 class="anchored" data-anchor-id="data-exploration">Data exploration</h2>
+<p>Interesting cases of game’s growth are for example <cite>Grand Theft Auto V</cite>. We see a traditional launch spike, but followed with a solid growth thanks to the <cite><abbr>GTA</abbr> Online</cite> feature. The mid-year and year end spikes are related to Steam’s biannual sales when the game has been available for a steep discount. The game was given away free on Epic Games Store in May 2020, and this giveaway shows as increased player activity also on Steam.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"Grand Theft Auto V"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span>   </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of Grand Theft Auto V"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/GTAV-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><cite>Destiny 2</cite> was released on Steam as a free-to-play title in October 2019. It’s normal that the initial interest wanes off for this kind of a <abbr>AAA</abbr> title, but the crucial thing for service based game is if it can recover from the “death valley”.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"Destiny 2"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span> </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of Destiny 2"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">color =</span> <span class="st">"black"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/Destiny%202-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Have we looked at the data early 2018, the top performer would have been <cite><abbr>PUBG</abbr></cite>. It was a massive beast during 2018 but it looks like <cite>Fortnite</cite> won the battle. <cite>Fornite</cite>, obviously, isn’t on Steam so we can’t compare it against <cite><abbr>PUBG</abbr></cite> here, but <a href="https://gamerant.com/fortnite-beat-pubg-twitch-stream-watch/">charts comparing their viewership on Twitch</a> show <cite>Fortnite</cite> bypassing <cite><abbr>PUBG</abbr></cite> around February 2018, which is when we see <cite><abbr>PUBG</abbr></cite>’s activity on Steam start to crater.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"PUBG: BATTLEGROUNDS"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span> </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of PUBG: BATTLEGROUNDS"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>) <span class="sc">+</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">position =</span> <span class="st">"bottom"</span>)) <span class="sc">+</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>) <span class="sc">+</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"PUBG until 2019"</span>), <span class="at">data =</span> steam_stats <span class="sc">|&gt;</span> <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"PUBG: BATTLEGROUNDS"</span>, date <span class="sc">&lt;</span> <span class="fu">as.Date</span>(<span class="st">"2019-01-01"</span>))) <span class="sc">+</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"PUBG until 2019"</span>), <span class="at">data =</span> steam_stats <span class="sc">|&gt;</span> <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"PUBG: BATTLEGROUNDS"</span>, date <span class="sc">&lt;</span> <span class="fu">as.Date</span>(<span class="st">"2019-01-01"</span>)), <span class="at">method =</span> <span class="st">'lm'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/PUBG-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In our analysis we are looking at all the data, but we could limit the outcome window of games and only look at first <var>X</var> months after launch as well. The way we are doing our analysis here is a bit sensitive to the point of time we are looking at and biased toward new games that have yet to reach their plateau.</p>
+<p>The true value of this analysis is to find those “smaller” games that are still growing, year on year. Especially the stories of niche games like <cite>Euro Truck Simulator 2</cite> are very interesting. The higher variance in <cite>Path of Exile</cite> could indicate it seems to really depend on regular content updates to drive players back. This can be a dangerous content treadmill. <cite><abbr>ETS2</abbr></cite> regularly adds new regions as <abbr>DLC</abbr>s, but it user activity seems to be growing in a more stable fashion.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Euro Truck Simulator 2"</span>, <span class="st">"Path of Exile"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color  =</span> game)) <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of Path of Exile and ETS2"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">position =</span> <span class="st">"bottom"</span>)) <span class="sc">+</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/POE%20and%20ETS2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also look at “product-like” launches, with huge intial spikes and eventual fall off the charts - what I would call traditional games as products. This games are often single player experiences with little replayability. These games usually benefit from new player acquisition spikes during Steam’s winter and summer sales.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>steam_stats <span class="sc">|&gt;</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(game <span class="sc">==</span> <span class="st">"Assassin's Creed Odyssey"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> peak_today, <span class="at">color =</span> game)) <span class="sc">+</span> </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily peak CCU of Assassin's Creed Odyssey"</span>, <span class="at">y =</span> <span class="st">"Peak CCU last 24 hours"</span>) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())) <span class="sc">+</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">color =</span> <span class="st">"black"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/ACO-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="clustering-the-games" class="level2">
+<h2 class="anchored" data-anchor-id="clustering-the-games">Clustering the games</h2>
+<p>In Seufert’s presentation, he wanted to map the “opportunities”, or games with an upward trajectory, on a matrix with “Mass appeal / Niche appeal” and “Male / Female” axes. I’ll chart the games a little bit differently, based on the elements that correlate with the idea of “staying power”. Below we’ll just cluster based on the linear regression coefficients and top chart data. We could further enrich the data with furhter metadata from Steam, for example publisher-set genres and user-defined tags that could also be used as features for clustering or other segmentation.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> games <span class="sc">|&gt;</span> <span class="fu">filter</span>(coeff <span class="sc">&gt;</span> <span class="dv">0</span>, nobs <span class="sc">&gt;</span> <span class="dv">90</span>),</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> r.squared, <span class="at">y =</span> coeff, <span class="at">label =</span> game)) <span class="sc">+</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top games by slope that have more than 90 observations"</span>, </span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Games in top-right have grown most and most consistently"</span>,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"R^2"</span>, </span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Coefficient (log scale)"</span>) <span class="sc">+</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">max.overlaps =</span> <span class="dv">9</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/chart%20coeff%20vs.%20r%5E2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Above is a chart of all the games that have been on top list on more than 90 occasions (~days) and which have in general seen their player base growing since the launch of the game. Y-axis (in logarithmic scale) is the coefficient (~avg. player growth/day) and X-axis is the <span class="math inline">\(R^2\)</span>.</p>
+<p>We can try to quickly group these games a bit by clustering. The attributes used in clustering are the slope, days in top list and the <span class="math inline">\(R^2\)</span>. We’ll also this time include all the games, not just those that have a positive trend to also identify games that have more product-like activity curves.</p>
+<div class="cell fig-cap-location-top">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29" data-cap-location="top"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>cluster_games <span class="ot">&lt;-</span> games <span class="sc">|&gt;</span> </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(nobs <span class="sc">&gt;</span> <span class="dv">90</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(coeff)) <span class="sc">|&gt;</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">age =</span> <span class="fu">as.numeric</span>(<span class="fu">max</span>(steam_stats<span class="sc">$</span>date) <span class="sc">-</span> first_date),</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">logcoeff =</span> <span class="fu">if_else</span>(coeff <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="fu">log10</span>(coeff), <span class="sc">-</span><span class="fu">log10</span>(<span class="sc">-</span>coeff))</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>games_matrix <span class="ot">&lt;-</span> cluster_games <span class="sc">|&gt;</span> </span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(game, first_date, coeff)) <span class="sc">|&gt;</span> </span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale</span>()</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(games_matrix) <span class="ot">&lt;-</span> cluster_games <span class="sc">|&gt;</span> </span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(game)</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>km <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(games_matrix, <span class="at">centers =</span> <span class="dv">4</span>, <span class="at">nstart =</span> <span class="dv">25</span>)</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a><span class="co"># rescale cluster centers</span></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>km<span class="sc">$</span>centers <span class="sc">|&gt;</span> </span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sweep</span>(<span class="dv">2</span>, <span class="fu">attr</span>(games_matrix, <span class="st">"scaled:scale"</span>), <span class="st">"*"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sweep</span>(<span class="dv">2</span>, <span class="fu">attr</span>(games_matrix, <span class="st">"scaled:center"</span>), <span class="st">"+"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"$R^2$"</span>, <span class="st">"Observations"</span>, <span class="st">"Age"</span>, <span class="st">"Log of Coefficient"</span>), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">4</span>), <span class="at">row.names =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: center;"><span class="math inline">\(R^2\)</span></th>
+<th style="text-align: center;">Observations</th>
+<th style="text-align: center;">Age</th>
+<th style="text-align: center;">Log of Coefficient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: center;">0.11</td>
+<td style="text-align: center;">521</td>
+<td style="text-align: center;">2225</td>
+<td style="text-align: center;">0.0436</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2</td>
+<td style="text-align: center;">0.23</td>
+<td style="text-align: center;">443</td>
+<td style="text-align: center;">871</td>
+<td style="text-align: center;">-1.6580</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">3</td>
+<td style="text-align: center;">0.62</td>
+<td style="text-align: center;">638</td>
+<td style="text-align: center;">2203</td>
+<td style="text-align: center;">-0.0300</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: center;">0.36</td>
+<td style="text-align: center;">2240</td>
+<td style="text-align: center;">2670</td>
+<td style="text-align: center;">0.6216</td>
+</tr>
+</tbody>
+</table>
+<p>Cluster centers</p>
+</div>
+</div>
+<p>We can make rough explanations for the clusters,</p>
+<ol type="1">
+<li>Games that do not have a strong explanatory power</li>
+<li>Product-like games with a downward trend</li>
+<li>Games with strong explanatory power, some of the opportunities can be found here</li>
+<li>Service-like games that have upward trend and are mainstays on the top charts</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>cluster_games <span class="ot">&lt;-</span> cluster_games <span class="sc">|&gt;</span> </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cluster =</span> km<span class="sc">$</span>cluster)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> cluster_games, </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> r.squared, <span class="at">y =</span> logcoeff, <span class="at">label =</span> game, <span class="at">color =</span> <span class="fu">as.factor</span>(cluster))</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Clustering of games"</span>,</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Games that have more than 90 observations"</span>, </span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"$R^2$"</span>, </span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Cluster"</span>, </span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Coefficient (log scale)"</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">max.overlaps =</span> <span class="dv">12</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="steambubblr_files/figure-html/plot%20clusters-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>This is just a quick clustering, and very likely far from optimal. We still want to focus on the top-right corner of this map to find the winners and opportunities. We might want to segment the data based on the age of the game and as mentioned before, limit the outcome window of the games. We are also working with left-censored data, some of the big games had already plateaued by the start date of our data set, like <cite>Dota 2</cite>.</p>
+<p>This analysis can be used as a quick way to get a better sense of the games on Steam’s top charts and what their trajectories look like. It can’t be overstated that this analysis is by necessity backward looking and it might be late to try to join the hype train as the market trends might change fast.</p>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>App Annie is now part of SensorTower, and this same analysis could be done with any source that gives you historical Top Grossing positions. App Annie just provided that information for free, although not for long after this presentation was shared.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Not shown here.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>These are poor examples in that they are multiplatform games that even on PC have their own launchers, so very much not Steam exclusive games.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

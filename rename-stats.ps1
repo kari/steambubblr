@@ -1,1 +1,0 @@
-Get-ChildItem steamstats | Where-Object { $_.Name -match "^\d{4}-" } | Rename-Item -NewName { $_.Name -replace '^(\d{4})-(\d{2})-(\d{2})', '$1$2$3' -replace '_[^-]+', '' }
