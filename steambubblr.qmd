@@ -2,7 +2,9 @@
 title: "Using Steam's basic usage statistics to see which games have staying power"
 date: 2026-02-06
 author: "Kari Silvennoinen"
-format: html
+format: 
+   html:
+     df-print: kable
 ---
 
 ```{r}
@@ -20,7 +22,7 @@ steam_stats <- readRDS("steam_stats.rds")
 
 ## Introduction
 
-A long time ago I saw [a presentation by Eric Seufert on <cite>Using (Free!) App Annie data to optimize your next game</cite>](https://www.slideshare.net/slideshow/using-free-app-annie-data-to-optimize-your-next-game/64352925)[^1]. The idea was to take the daily iOS Top Grossing chart positions of games and then do a linear regression of them and find games that have a positive coefficient over time. It's really rough but does give some indication about games' life cycles. One downside is that you only get the chart position when ideally you would want to know the daily player count or daily revenue.(although you can get estimates of these if you pay for them).
+A long time ago I saw [a presentation by Eric Seufert on <cite>Using (Free!) App Annie data to optimize your next game</cite>](https://www.slideshare.net/slideshow/using-free-app-annie-data-to-optimize-your-next-game/64352925)[^1]. The idea was to do market research by taking the daily iOS Top Grossing chart positions of games and then do a linear regression of them and so filter down to games that have a positive coefficient over time. It's really rough but does give some indication about games' life cycles and potential. One downside is that you only get the chart position when ideally you would want to know the daily player count or daily revenue.(although you can get estimates of these if you pay for them).
 
 [^1]: App Annie is now part of SensorTower, and this same analysis could be done with any source that gives you historical Top Grossing positions. App Annie just provided that information for free, although not for long after this presentation was shared.
 
@@ -30,7 +32,7 @@ For your own purposes, you would need either have a script collect the data thro
 
 ## Data quality and limitations
 
-In this analysis I'll use a data set ranging between `r format(min(steam_stats$date), format = "%B %Y")` and `r format(max(steam_stats$date), format = "%B %Y")`, with (almost) daily data from mid-August 2016 onwards (except around May 2018).
+In this analysis I'll use a data set ranging between `r format(min(steam_stats$date), format = "%B %Y")` and `r format(max(steam_stats$date), format = "%B %Y")`, with (almost) daily data from mid-August 2016 onwards (except around May 2018). The data collection method was a bit spotty in the beginning.
 
 ```{r}
 #| label: gaps in dates
@@ -75,15 +77,15 @@ ggplot(cal, aes(y = week, x = wday, fill = data_exists)) +
 
 ```
 
-Just to remind, this is data from Steam _only_ , so it gives no indication of these games' performance on consoles or on other launchers on PC (like Epic Games or GOG). We are also only looking at games that managed to get at least _once_ to Top 100 list. There are tens of thousands of games on Steam, and we are limited to looking at barely `r length(unique(steam_stats$game_id))` of them.
+Just to remind, this is data from Steam _only_ , so it gives no indication of these games' performance on consoles or on other launchers on PC (like Epic Games or <abbr>GOG</abbr>). We are also only looking at games that managed to get at least _once_ to Top 100 list. There are tens of thousands of games on Steam, and we are limited to looking at barely `r length(unique(steam_stats$game_id))` of them.
 
 Also note that this analysis does not tell anything about a game's revenue performance - we are looking at player counts, not revenue. However, what it tells is what kind of games are prime candidates for service-based business models. In fact, looking at the data it is pretty easy to identify which games are (or act like) traditional AAA-games with little post-launch planning and which games can sustain and grow their audience over time - be it through marketing efforts or pure virality or a combination of these.
 
-## Data cleanup
+## Data prep and cleanup
 
-Exploring the data, some data issues pop up. First we explore the uniqueness and existence of both Game IDs and game names and the cardinality between the two.
+Once we have parsed the data and have the raw data set, let's check the condition of the data we have. First we explore the uniqueness and existence of both Game IDs and game names and the cardinality between the two.
 
-Football Manager together with Call of Duty shave ome entries missing the Game ID in the raw data. Fortunately, these can be found from elsewhere in the data.
+Football Manager together with Call of Duty have some entries missing the Game ID in the raw data. Fortunately, these can be found from elsewhere in the data.
 
 ```{r}
 #| label: find missing game IDs
@@ -140,7 +142,7 @@ In addition there are also multiple names for the same Game ID. Name changes are
     count = length(unique(game)),
     names = paste(unique(game), collapse = ", ")
     ) |>
-  filter(count > 1) |> arrange(-count))
+  filter(count > 1) |> arrange(-count) |> head(25))
 
 steam_stats <- steam_stats |>
   group_by(game_id) |>
@@ -148,60 +150,69 @@ steam_stats <- steam_stats |>
   ungroup()
 ```
 
-With some annual franchises like <cite>Football Manager</cite> and 2K's NBA - the player base quickly migrates to the next installation and the old game is removed from the Steam storefront. These installments could be grouped to one game, but where should we set the limit? Should we do similar treatment for <cite>Call of Duty</cite> or just for annual sports franchises?
+With some annual franchises like <cite>Football Manager</cite> and 2K's NBA - the player base quickly migrates to the next installation a(nd sometimes like with the first franchise, the old game is removed from the Steam storefront). These installments could be grouped to one game for our purposes, but where should we set the limit? Should we do similar treatment for <cite>Call of Duty</cite> or just for annual sports franchises?
 
 ```{r}
 #| label: combine Football Manager franchise
-fm <- steam_stats |> select(peak_today, game, date) |> filter(str_starts(game, "Football Manager")) |> mutate(game = str_replace(game, "Football Manager", "FM"))
-ggplot(fm, aes(x = date, y = peak_today, color = game)) +
+ggplot(steam_stats |> 
+         select(peak_today, game, date) |> 
+         filter(str_starts(game, "Football Manager")) |> 
+         mutate(game = str_replace(game, "Football Manager", "FM")), 
+       aes(x = date, y = peak_today, color = game)) +
   geom_line() +
-  labs(title = "Daily peak CCU for Football Manager games", x = "Date", y = "Peak number of simultaneous players", color = "Installment") +
+  labs(title = "Daily peak CCU for Football Manager games", x = "Date", y = "Peak CCU last 24 hours", color = "Installment") +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale()))
- #+stat_summary(aes(color = "Total"), fun = "sum", geom="line", linetype = 2, show.legend = TRUE)
 
 steam_stats <- steam_stats |>
   mutate(game = if_else(str_starts(game, "Football Manager"), "Football Manager", game)) |>
   group_by(game) |>
   mutate(game_id = if_else(game == "Football Manager", min(game_id), game_id)) |>
   group_by(game, game_id, date) |>
-  summarise(peak_today = sum(peak_today), current_players = sum(current_players), .groups = "drop") # NOTE: We assume distinct players across games, there can be overlap, we could also take max
+  # NOTE: We assume distinct players across games, there can be overlap, we could also take max
+  summarise(peak_today = sum(peak_today), current_players = sum(current_players), .groups = "drop") 
 
 ```
 ```{r}
 #| label: combine NBA franchise
-nba2k <- steam_stats |> select(peak_today, game, date) |> filter(str_starts(game, "NBA 2K"))
-ggplot(nba2k, aes(x = date, y = peak_today, color = game)) +
+ggplot(steam_stats |> 
+         select(peak_today, game, date) |> 
+         filter(str_starts(game, "NBA 2K")), 
+       aes(x = date, y = peak_today, color = game)) +
   geom_line() +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
-  labs(title = "Daily peak CCU for 2K's NBA games", x = "Date", y = "Peak number of simultaneous players", color = "Installment") 
-# + stat_summary(aes(color = "Total"), fun = "sum", geom="line", linetype = 2, show.legend = TRUE)
+  labs(title = "Daily peak CCU for 2K's NBA games", x = "Date", y = "Peak CCU last 24 hours", color = "Installment") 
 
 steam_stats <- steam_stats |>
   mutate(game = if_else(str_starts(game, "NBA 2K"), "NBA 2K", game)) |>
   group_by(game) |>
   mutate(game_id = if_else(game == "NBA 2K", min(game_id), game_id)) |>
   group_by(game, game_id, date) |>
-  summarise(peak_today = sum(peak_today), current_players = sum(current_players), .groups = "drop") # NOTE: We assume distinct players across games, there can be overlap, we could also take max
+  # NOTE: We assume distinct players across games, there can be overlap, we could also take max
+  summarise(peak_today = sum(peak_today), current_players = sum(current_players), .groups = "drop") 
 
 ```
-
+Now our data is in a good enough shape to continue with the actual modeling.
 
 ## Modeling engagement and growth
 
-Seufert's idea was to summarise a game's activity graph as a simple linear regression: we can use the trend line's slope as a summary of how well the game's player base is doing. Let's check what the Steam activity looks like for Warframe and Rainbow Six Siege[^3]. The idea is to do this to all games in the dataset and find the games that go to the up and the right, ie. have a positive trend line.
+Seufert's idea was to summarise a game's activity graph as a simple linear regression: we can use the trend line's slope as a summary of how well the game's player base is doing. As an example, let's check what the Steam activity looks like for Warframe and Rainbow Six Siege[^3]. The idea is to do this for all games in the dataset and find the games that go to the up and the right, ie. have a positive trend line.
 
 [^3]: These are poor examples in that they are multiplatform games that even on PC have their own launchers, so very much not Steam exclusive games.
 
 ```{r}
+#| label: Siege and Warframe
 steam_stats |> 
   filter(game %in% c("Tom Clancy's Rainbow Six Siege", "Warframe")) |>
   ggplot(aes(x = date, y = peak_today, color = game)) + 
+  labs(title = "Daily peak CCU of Siege and Warframe", y = "Peak CCU last 24 hours", color = NULL) +
   geom_line(aes(color = game)) + 
   guides(color = guide_legend(position = "bottom")) +
   geom_smooth(method = 'lm') +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale()))
 ```
 ```{r}
+#| label: run LM for the dataset
+
 games <- steam_stats |>
   group_by(game) |>
   nest() |>
@@ -211,16 +222,17 @@ games <- steam_stats |>
     glance = map(model, broom::glance),
     tidy = map(model, broom::tidy)
     ) |>
-  unnest(glance, names_repair = "unique") |>
-  unnest(tidy, names_repair = "unique") |>
+  unnest(c(glance, tidy), names_repair = "unique") |>
   filter(term == "date") |>
   select(game, first_date, r.squared, nobs, estimate) |>
   rename(coeff = estimate) |>
+  filter(!is.na(coeff)) |>
   ungroup()
 
-(top_games <- games |>
+(games |>
   filter(nobs > 90) |>
-  arrange(-coeff))
+  arrange(-coeff) |> 
+  head(25))
 ```
 
 Many games only a quick appearance in the Top 100, either by having a big launch with little follow-up or due to a free weekend, full game giveaway or an open beta. We can filter these out by only looking at games that have been on the top list for at least 90 (non-consecutive) days. It's also worth to note that this is not a list of top played games played on Steam, this list is sorted by how much we have seen these games' player counts increase over time.
@@ -230,8 +242,6 @@ Above you'll notice <cite>Source SDK Base 2013 Multiplayer</cite>, it is used as
 ```{r}
 #| label: filter mods, porn and pirates
 games <- games |>
-  filter(!game %in% c("Source SDK Base 2013 Multiplayer", "Spacewar", "Wallpaper Engine"))
-top_games <- top_games |>
   filter(!game %in% c("Source SDK Base 2013 Multiplayer", "Spacewar", "Wallpaper Engine"))
 ```
 
@@ -243,10 +253,12 @@ Interesting cases of game's growth are for example Grand Theft Auto V. We see a 
 #| label: GTAV
 steam_stats |>
   filter(game == "Grand Theft Auto V") |>
-  ggplot(aes(x = date, y = peak_today)) + 
+  ggplot(aes(x = date, y = peak_today, color = game)) +   
+  labs(title = "Daily peak CCU of Grand Theft Auto V", y = "Peak CCU last 24 hours") +
   geom_line() + 
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm', color = "black") +
+  guides(color = "none")
 ```
 
 Destiny 2 was released on Steam as a free-to-play title in October 2019. It's normal that the initial interest wanes off for this kind of a AAA title, but the crucial thing for service based game is if it can recover from the "death valley".
@@ -255,10 +267,12 @@ Destiny 2 was released on Steam as a free-to-play title in October 2019. It's no
 #| label: Destiny 2
 steam_stats |>
   filter(game == "Destiny 2") |>
-  ggplot(aes(x = date, y = peak_today)) + 
+  ggplot(aes(x = date, y = peak_today, color = game)) + 
+  labs(title = "Daily peak CCU of Destiny 2", y = "Peak CCU last 24 hours") +
+  guides(color = "none") +
   geom_line() + 
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm', color = "black")
 ```
 Have we looked at the data early 2018, the top performer would have been PUBG. It was a massive beast during 2018 but it looks like Fortnite won the battle. Fornite, obviously, isn't on Steam so we can't compare it against PUBG here, but [charts comparing their viewership on Twitch](https://gamerant.com/fortnite-beat-pubg-twitch-stream-watch/) show Fortnite bypassing PUBG around February 2018, which is when we see PUBG's activity on Steam start to crater.
 
@@ -267,78 +281,118 @@ Have we looked at the data early 2018, the top performer would have been PUBG. I
 steam_stats |>
   filter(game == "PUBG: BATTLEGROUNDS") |>
   ggplot(aes(x = date, y = peak_today, color = game)) + 
+  labs(title = "Daily peak CCU of PUBG: BATTLEGROUNDS", y = "Peak CCU last 24 hours") +
+  guides(color = guide_legend(position = "bottom")) +
   geom_line() + 
   geom_smooth(method = 'lm') +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
-  geom_line(aes(color = "PUBG"), data = steam_stats |> filter(game == "PUBG: BATTLEGROUNDS", date < as.Date("2019-01-01"))) +
-  geom_smooth(aes(color = "PUBG"), data = steam_stats |> filter(game == "PUBG: BATTLEGROUNDS", date < as.Date("2019-01-01")), method = 'lm')
+  geom_line(aes(color = "PUBG until 2019"), data = steam_stats |> filter(game == "PUBG: BATTLEGROUNDS", date < as.Date("2019-01-01"))) +
+  geom_smooth(aes(color = "PUBG until 2019"), data = steam_stats |> filter(game == "PUBG: BATTLEGROUNDS", date < as.Date("2019-01-01")), method = 'lm')
 
 ```
+In our analysis we are looking at all the data, but we could limit the outcome window of games and only look at first X months after launch as well. The way we are doing our analysis here is a bit sensitive to the point of time we are looking at and biased toward new games that have yet to reach their plateau.
 
 The true value of this analysis is to find those "smaller" games that are still growing, year on year. Especially the stories of niche games like Euro Truck Simulator 2 are very interesting. The higher variance in Path of Exile could indicate it seems to really depend on regular content updates to drive players back. This can be a dangerous content treadmill. ETS2 regularly adds new regions as DLCs, but it user activity seems to be growing in a more stable fashion.
 
 ```{r}
+#| label: POE and ETS2
 steam_stats |> 
   filter(game %in% c("Euro Truck Simulator 2", "Path of Exile")) |>
   ggplot(aes(x = date, y = peak_today, color  = game)) + 
+  labs(title = "Daily peak CCU of Path of Exile and ETS2", y = "Peak CCU last 24 hours", color = NULL) +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
   guides(color = guide_legend(position = "bottom")) +
   geom_line() + 
   geom_smooth(method = 'lm')
 ```
 
-We can also try to find "product-like" launches, with huge intial spikes and eventual fall off the charts. This games are often single player experiences with little replayability. Like GTA V, these games usually benefit from new player acquisition spikes during Steam's winter and summer sales.
+We can also look at "product-like" launches, with huge intial spikes and eventual fall off the charts - what I would call traditional games as products. This games are often single player experiences with little replayability. These games usually benefit from new player acquisition spikes during Steam's winter and summer sales.
 
 ```{r}
+#| label: ACO
 steam_stats |> 
   filter(game == "Assassin's Creed Odyssey") |>
-  ggplot(aes(x = date, y = peak_today)) + 
+  ggplot(aes(x = date, y = peak_today, color = game)) + 
+  labs(title = "Daily peak CCU of Assassin's Creed Odyssey", y = "Peak CCU last 24 hours") +
+  guides(color = "none") +
   geom_line() + 
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm', color = "black")
 ```
 
 ## Clustering the games
 
-In Seufert's presentation, he wanted to map the "opportunities", or games with an upward trajectory, on a matrix with "Mass appeal / Niche appeal" and "Male / Female" axes. I'll chart the games a little bit differently, based on the elements that correlate with the staying power. Below we'll just cluster based on the linear regression coefficients and top chart data. Steam offers further metadata, for example publisher-set genres and user-defined tags that could also be used as factors for clustering or other grouping.
+In Seufert's presentation, he wanted to map the "opportunities", or games with an upward trajectory, on a matrix with "Mass appeal / Niche appeal" and "Male / Female" axes. I'll chart the games a little bit differently, based on the elements that correlate with the idea of "staying power". Below we'll just cluster based on the linear regression coefficients and top chart data. We could further enrich the data with furhter metadata from Steam, for example publisher-set genres and user-defined tags that could also be used as features for clustering or other segmentation.
 
 ```{r}
-ggplot(data = top_games |> filter(coeff > 0), aes(x = r.squared, y = coeff, label = game)) +
-  labs(title = "Top games by slope that have more than 90 observations", x = "R^2") +
+#| label: chart coeff vs. r^2
+#| warning: false 
+ggplot(data = games |> filter(coeff > 0, nobs > 90),
+       aes(x = r.squared, y = coeff, label = game)) +
+  labs(
+    title = "Top games by slope that have more than 90 observations", 
+    subtitle = "Games in top-right have grown most and most consistently",
+    x = "R^2", 
+    y = "Coefficient (log scale)") +
   geom_point() +
   scale_y_log10() +
   geom_text_repel(max.overlaps = 9, size = 3)
 ```
+Above is a chart of all the games that have been on top list on more than 90 occasions (~days) and which have in general seen their player base growing since the launch of the game. Y-axis (in logarithmic scale) is the coefficient (~avg. player growth/day) and X-axis is the r^2.
 
-Above is a chart of all the games that have been on top list on more than 90 occasions (~days) and which have in general seen their player base growing since the launch of the game. Y-axis (in log) is the coefficient (~avg. player growth/day) and X-axis is the r^2.
-
-We can try to quickly group these games a bit by grouping the list behavior of these games. The attributes used in clustering are the slope, days in top list and the r^2.
+We can try to quickly group these games a bit by clustering. The attributes used in clustering are the slope, days in top list and the r^2. We'll also this time include all the games, not just those that have a positive trend to also identify games that hvae more product-like activity curves.
 
 ```{r}
-# FIXME: Lots of random stuff here, and somehow PUBG is weirdly clustered but the Python one didn't scale the features, probably add last_date_of_data - first_date to balance out nobs
-# note about point of time, new games probably still on upward trajectory before plateauing, could limit window to X days
+#| label: clustering
+#| warning: false
 
 set.seed(42)
 
-games_matrix <- games |> filter(nobs > 14 & !is.na(coeff)) |> select(-c(game, first_date)) |> mutate(coeff = if_else(coeff > 0, log10(coeff), -log10(-coeff))) |> as.matrix() |> scale()
-rownames(games_matrix) <- games |> filter(nobs > 14 & !is.na(coeff)) |> pull(game)
+cluster_games <- games |> 
+  filter(nobs > 90 & !is.na(coeff)) |>
+  mutate(
+    age = as.numeric(max(steam_stats$date) - first_date),
+    logcoeff = if_else(coeff > 0, log10(coeff), -log10(-coeff))
+    )
 
-# library(factoextra)
-# fviz_nbclust(games_matrix, kmeans, method = "wss")
+games_matrix <- cluster_games |> 
+  select(-c(game, first_date, coeff)) |> 
+  as.matrix() |> 
+  scale()
+
+rownames(games_matrix) <- cluster_games |> 
+  pull(game)
 
 km <- kmeans(games_matrix, centers = 4, nstart = 25)
 
-# fviz_cluster(km, data = games_matrix)
+# rescale cluster centers
+km$centers |> 
+  sweep(2, attr(games_matrix, "scaled:scale"), "*") |> 
+  sweep(2, attr(games_matrix, "scaled:center"), "+") |> 
+  as_tibble()
+```
 
-# Cluster centers
-km$centers |> sweep(2, attr(games_matrix, "scaled:scale"), "*") |> sweep(2, attr(games_matrix, "scaled:center"), "+")
 
-clustered_games <- games |> filter(nobs > 14 & !is.na(coeff)) |> mutate(cluster = km$cluster) |> mutate(logcoeff = if_else(coeff > 0, log10(coeff), -log10(-coeff))) |> filter(nobs > 90)
+```{r}
+#| label: plot clusters
+#| warning: false
 
-ggplot(data = clustered_games, aes(x = r.squared, y = logcoeff, label = game, color = as.factor(cluster))) +
-  labs(title = "Games that have more than 90 observations", x = "R^2", color = "Cluster") +
+cluster_games <- cluster_games |> 
+  mutate(cluster = km$cluster)
+
+ggplot(
+  data = cluster_games, 
+  aes(x = r.squared, y = logcoeff, label = game, color = as.factor(cluster))
+  ) +
+  labs(
+    title = "Clustering of games",
+    subtitle = "Games that have more than 90 observations", 
+    x = "R^2", 
+    color = "Cluster", 
+    y = "Coefficient (log scale)"
+  ) +
   geom_point() +
-  geom_text_repel(max.overlaps = 9, size = 3)
+  geom_text_repel(max.overlaps = 12, size = 3)
 
 ```
 
